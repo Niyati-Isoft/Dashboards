@@ -1,0 +1,8 @@
+streamlit>=1.33
+plotly>=5.22
+pandas>=2.2
+numpy>=1.26
+python-dateutil>=2.9
+tzdata>=2024.1      # gives ZoneInfo time zones on minimal Linux images
+openpyxl>=3.1       # if you read Excel files
+requests>=2.32      # if you fetch URLs
