@@ -171,12 +171,21 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
         if pd.isna(x): return pd.NaT
         if isinstance(x, (pd.Timestamp, datetime)): return pd.to_datetime(x)
         return pd.to_datetime(str(x), dayfirst=True, errors='coerce')
+    # keep only expenditure rows
+    if "Source" in df.columns:
+        df = df[df["Source"].astype(str).str.strip().str.lower() == "spend money"]
 
+    # ... your _parse_date then:
     df["Date"] = df["Date"].apply(_parse_date)
     df = df.dropna(subset=["Date"])
 
-    df["Debit(AUD)"] = pd.to_numeric(df["Debit(AUD)"], errors="coerce").abs()
-    df = df.dropna(subset=["Debit(AUD)"])
+    # DO NOT .abs(); keep sign and drop non-positive amounts
+    df["Debit(AUD)"] = pd.to_numeric(df["Debit(AUD)"], errors="coerce")
+    df = df[df["Debit(AUD)"] > 0]
+
+
+    df["Date"] = df["Date"].apply(_parse_date)
+    df = df.dropna(subset=["Date"])
 
     df["Type"] = df["Type"].apply(_canon_type)
 
