@@ -25,6 +25,69 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# --- FAQ (Subscription Dashboard) ---
+def render_subscription_faq():
+    import streamlit as st
+
+    faqs = [
+        ("What kind of file should I upload?",
+         "You can upload either a CSV or Excel file with your subscription transactions."),
+        ("What columns are required?",
+         "Your file should have at least these:\n"
+         "- **Date** of the transaction\n"
+         "- **Description/Vendor** (who you paid)\n"
+         "- **Amount (Debit)**\n"
+         "- **Category/Type** (e.g., Tech, Marketing, Others)"),
+        ("My categories look inconsistent (e.g., Tech, technology, TECH). Will it still work?",
+         "Yes, the dashboard automatically cleans and groups common variations (e.g., all become 'Tech')."),
+        ("Some vendor names look very long (like Airwallex Expenses – Azure). Can they be simplified?",
+         "Yes, the dashboard automatically shortens some names (e.g., just 'Airwallex Expenses')."),
+        ("What happens if a transaction has no category?",
+         "It will be grouped under 'no category'."),
+        ("How do I look at subscriptions for a specific month or year?",
+         "Use the sidebar filters to select year(s) and month(s)."),
+        ("Can I filter by specific vendors?",
+         "Yes — you can choose one or many vendors from the sidebar."),
+        ("Why don’t I see all months on the chart?",
+         "Only months with spending appear. If there was no spend, that month won’t show."),
+        ("Are refunds or incoming money included?",
+         "No — only 'Spend Money' transactions are included in totals and charts."),
+        ("What do the tiles at the top show?",
+         "- **Total Spend**: Total subscription spend in your selection\n"
+         "- **Average Monthly Spend**: Average spend per month in your selection\n"
+         "- **Top Vendor**: The vendor with the highest spend"),
+        ("What does the Top/Bottom Vendors view mean?",
+         "It shows which vendors have the highest (Top) and lowest (Bottom) subscription spend in the selected period."),
+        ("What does the Monthly Spend by Vendor line chart show?",
+         "It shows how much you spent on each selected vendor, month by month.\n"
+         "You can also see the percentage change compared to the previous month when you hover."),
+        ("Why are some lines flat?",
+         "That means there was no change in spending for that vendor across the months."),
+        ("Why is my file not loading?",
+         "Make sure it’s in CSV/Excel format and has the required columns (Date, Description, Amount, Category)."),
+        ("Why do I see 'NaN' or blank values?",
+         "That usually happens if your file has rows without a category or amount. You can fill those in before uploading."),
+        ("Why does the spend look too high/low?",
+         "Check if your file has duplicate rows or includes refunds. The dashboard only counts positive 'Spend Money' amounts."),
+    ]
+
+    with st.expander("❓ FAQ — Subscription Dashboard", expanded=False):
+        # Quick dropdown for one answer
+        questions = [q for q, _ in faqs]
+        choice = st.selectbox("Quick question", options=questions, index=0)
+        st.markdown(dict(faqs)[choice])
+
+        st.divider()
+        st.caption("All questions & answers")
+        # Full list
+        for q, a in faqs:
+            st.markdown(f"**{q}**")
+            st.markdown(a)
+            st.markdown("---")
+st.markdown("<h1 style='text-align: center;'>Subscription Dashboard</h1>", unsafe_allow_html=True)
+render_subscription_faq()
+
 # -------------------- Helpers --------------------
 @st.cache_data(show_spinner=False)
 def _load_csv(file) -> pd.DataFrame:
