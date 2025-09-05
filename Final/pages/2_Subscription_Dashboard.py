@@ -11,7 +11,20 @@ import plotly.express as px
 import streamlit as st
 import re
 
+from utils.bootstrap import ensure_bootstrap
 
+ctx = ensure_bootstrap(page_title="Home — iSOFT Dashboards", page_icon="🏠")
+# Top developer banner (page header)
+st.markdown(
+    """
+    <div style="text-align:center; margin-bottom:1rem;">
+        <small style="color:grey; font-size:0.9rem;">Developed by</small><br>
+        <img src="https://b3660930.smushcdn.com/3660930/wp-content/uploads/2024/03/iSOFT-Logo-Tag-New-e1721176700423.png?lossy=2&strip=1&webp=1"
+             alt="iSOFT ANZ" width="180">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # -------------------- Helpers --------------------
 @st.cache_data(show_spinner=False)
 def _load_csv(file) -> pd.DataFrame:
@@ -102,23 +115,25 @@ def _standardise_columns(raw: pd.DataFrame) -> pd.DataFrame:
     if date_col is None: missing.append("Date")
     if desc_col is None: missing.append("Description")
     if amt_col  is None: missing.append("Debit(AUD)")
-    if type_col is None: type_col = None  # will default to 'Others'
 
     if missing:
         st.error(f"Missing required columns: {', '.join(missing)}.")
         st.stop()
 
     out = pd.DataFrame({
-        "Date": df[date_col],
-        "Description": df[desc_col],
-        # clean amount text; _prepare will to_numeric+abs
-        "Debit(AUD)": (
-            df[amt_col].astype(str)
-            .str.replace(r"[,$()\s]", "", regex=True)
-            .str.replace("\u00a0", "", regex=False)
-        ),
-        "Type": df[type_col] if type_col is not None else "Others",
-    })
+            "Date": df[date_col],
+            "Description": df[desc_col],
+            # clean amount text; _prepare will to_numeric+abs
+            "Debit(AUD)": (
+                df[amt_col].astype(str)
+                .str.replace(r"[,$()\s]", "", regex=True)
+                .str.replace("\u00a0", "", regex=False)
+            ),
+            "Type": (
+                df[type_col].fillna("No Category Found") if type_col is not None
+                else "No Category Found"
+            ),
+        })
     return out
 
 

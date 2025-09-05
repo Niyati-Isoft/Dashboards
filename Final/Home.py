@@ -3,6 +3,20 @@ import streamlit as st
 from utils.bootstrap import ensure_bootstrap
 
 ctx = ensure_bootstrap(page_title="Home — iSOFT Dashboards", page_icon="🏠")
+# Top developer banner (page header)
+st.markdown(
+    """
+    <div style="text-align:center; margin-bottom:1rem;">
+        <small style="color:grey; font-size:0.9rem;">Developed by</small><br>
+        <img src="https://b3660930.smushcdn.com/3660930/wp-content/uploads/2024/03/iSOFT-Logo-Tag-New-e1721176700423.png?lossy=2&strip=1&webp=1"
+             alt="iSOFT ANZ" width="180">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
 # ----------------- Header -----------------
 st.markdown("""
 <style>

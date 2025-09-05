@@ -32,6 +32,19 @@ def ensure_bootstrap(page_title: str, page_icon: str = "📊"):
 
     # First-run setup form
     if "brand_key" not in st.session_state or "tz_key" not in st.session_state:
+
+        # --- Developer branding at the top ---
+        st.markdown(
+            """
+            <div style="text-align:center; margin-bottom:1rem;">
+                <small style="color:grey; font-size:0.9rem;">Developed by</small><br>
+                <img src="https://b3660930.smushcdn.com/3660930/wp-content/uploads/2024/03/iSOFT-Logo-Tag-New-e1721176700423.png?lossy=2&strip=1&webp=1"
+                    alt="iSOFT ANZ" width="180">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         with st.form("bootstrap_form", border=True):
             st.subheader("🔧 Setup")
             brand_key = st.selectbox(
@@ -50,16 +63,20 @@ def ensure_bootstrap(page_title: str, page_icon: str = "📊"):
                 st.session_state["brand_key"] = brand_key
                 st.session_state["tz_key"] = tz_key
                 st.rerun()
+
         st.stop()
+
 
     # Safe to read
     brand_key = st.session_state["brand_key"]
     tz_key    = st.session_state["tz_key"]
     brand     = COMPANIES[brand_key]
 
+
     # Sidebar branding + quick settings
     st.sidebar.image(brand["logo"], width=200)
     with st.sidebar.expander("Settings"):
+    
         new_brand = st.selectbox(
             "Company", list(COMPANIES.keys()),
             index=list(COMPANIES.keys()).index(brand_key),

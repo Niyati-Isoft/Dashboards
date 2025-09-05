@@ -9,8 +9,66 @@ from datetime import datetime
 # ------------------ App setup ------------------
 st.set_page_config(page_title="Financial Dashboard", page_icon=":bar_chart:", layout="wide")
 color_theme = px.colors.qualitative.Pastel
+from utils.bootstrap import ensure_bootstrap
 
+ctx = ensure_bootstrap(page_title="Home — iSOFT Dashboards", page_icon="🏠")
+# Top developer banner (page header)
+st.markdown(
+    """
+    <div style="text-align:center; margin-bottom:1rem;">
+        <small style="color:grey; font-size:0.9rem;">Developed by</small><br>
+        <img src="https://b3660930.smushcdn.com/3660930/wp-content/uploads/2024/03/iSOFT-Logo-Tag-New-e1721176700423.png?lossy=2&strip=1&webp=1"
+             alt="iSOFT ANZ" width="180">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 st.markdown("<h1 style='text-align: center;'>Financial Dashboard</h1>", unsafe_allow_html=True)
+
+# --- FAQ (collapsed expander at top) ---
+def render_faq_expander():
+    import streamlit as st
+
+    faqs = [
+        ("How do I upload my CSV files?",
+         "- Upload **Balance Activity Report (BAR) CSV first**, then **Expenses CSV** from the sidebar.\n"
+         "- Both files are required.\n"
+         "- After upload, the app builds a **unified dataset** you can preview/download."),
+        ("I see 'NaN' — what does that mean?",
+         "- **NaN** = missing/empty value in the source CSV.\n"
+         "- Check **Unified Data → Preview** for rows/columns with NaNs.\n"
+         "- Fix in the CSV if needed and re-upload."),
+        ("How are PAYOUT and DEPOSIT handled?",
+         "- **PAYOUT** → Category = **Transfers**; treated as **debit** (money out).\n"
+         "- **DEPOSIT** → Category = **No Category**; treated as **credit** (money in) and **excluded** from spend pies."),
+        ("Who is the 'User' for payouts?",
+         "- We extract the name **after 'to'** in the description.\n"
+         "  e.g., *'payout to Mr James Brook'* → **User = James Brook**."),
+        ("What is Total Expenditure?",
+         "- Sum of **Debit Net Amount** for **CARD**, **PAYOUT**, **ADJUSTMENT**.\n"
+         "- **DEPOSIT** and card refunds are credits and not counted in expenditure."),
+        ("Where can I verify or export the merged data?",
+         "- Open **Unified Data** to *Preview*, see a *Summary*, or **Download** `unified_transactions.csv`."),
+        ("Why might a BAR transaction be missing from the unified file?",
+         "- Join is on **Transaction Id**. If an ID is blank, mismatched, or absent in the other file, it won’t match.\n"
+         "- Check both source files or use *Missing Transaction Checker*."),
+    ]
+
+    with st.expander("❓ FAQ — click to open", expanded=False):
+        # Quick dropdown for one answer
+        questions = [q for q, _ in faqs]
+        choice = st.selectbox("Quick question", options=questions, index=0)
+        st.markdown(dict(faqs)[choice])
+
+        st.divider()
+        st.caption("All questions & answers")
+        # Full list
+        for q, a in faqs:
+            st.markdown(f"**{q}**")
+            st.markdown(a)
+            st.markdown("---")
+render_faq_expander()
+
 
 # Sidebar file upload
 bal_file = st.sidebar.file_uploader("Upload Balance Activity Report CSV", type="csv")
@@ -632,52 +690,7 @@ else:
                              color_discrete_sequence=color_theme)
             cat_fig.update_traces(textposition='inside', textinfo='percent+label', marker_line_width=0)
             st.plotly_chart(cat_fig, use_container_width=True)
-# --- FAQ (dropdown at bottom) ---
-def render_faq_dropdown():
-    st.header("❓ FAQ")
 
-    faqs = [
-        ("How do I upload my CSV files?",
-         "- Upload **Expenses CSV first**, then **Balance Activity Report CSV** from the sidebar.\n"
-         "- Both files are required; the app stops if either is missing.\n"
-         "- After upload, the app builds a **unified dataset** you can preview/download."),
-        ("I see 'NaN' — what does that mean?",
-         "- **NaN** means a missing/empty value in your source CSV (e.g., Employee or Category not provided).\n"
-         "- Check **Unified Data → Preview** to locate rows/columns with NaNs.\n"
-         "- Fix in the source CSV if needed and re-upload."),
-        ("How are PAYOUT and DEPOSIT handled?",
-         "- **PAYOUT** → Category = **Transfers**; treated as **debit** (money out).\n"
-         "- **DEPOSIT** → Category = **No Category**; treated as **credit** (money in) and **excluded** from spend pies."),
-        ("Who is the 'User' for payouts?",
-         "- We extract the name **after the word 'to'** in the description.\n"
-         "  Example: *'payout to Mr James Brook'* → **User = James Brook**."),
-        ("What is Total Expenditure?",
-         "- Sum of **Debit Net Amount** for **CARD**, **PAYOUT**, and **ADJUSTMENT**.\n"
-         "- **DEPOSIT** (and card refunds) are credits and not included in expenditure."),
-        ("Where can I verify or export the merged data?",
-         "- Open **Unified Data** at the top: *Preview*, *Summary*, and **Download** the `unified_transactions.csv`."),
-        ("Why might a BAR transaction be missing from the unified file?",
-         "- We join on **Transaction Id**. If an ID is blank, differs in case/spacing, or doesn’t appear in the other file, it won’t match.\n"
-         "- Check both source files for that ID, or use 'Missing Transaction Checker'."),
-    ]
-
-    questions = [q for q, _ in faqs]
-    choice = st.selectbox("Quick answers", options=questions, index=0)
-
-    # Show the chosen answer
-    answer = dict(faqs)[choice]
-    st.markdown(answer)
-
-    # Optional: let users expand to see everything
-    with st.expander("Show all questions & answers"):
-        for q, a in faqs:
-            st.markdown(f"**{q}**")
-            st.markdown(a)
-            st.markdown("---")
-
-# render at page bottom
-st.divider()
-render_faq_dropdown()
 
 
 
