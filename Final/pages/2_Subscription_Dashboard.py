@@ -452,6 +452,10 @@ vendor_sum = (
             .sort_values("Debit(AUD)", ascending=False)
 )
 
+# Optional table
+if st.toggle("Show Vendor Summary", value=False, key="vendor_table"):
+    st.dataframe(vendor_sum)
+    
 tab1, tab2 = st.tabs(["Top / Bottom", "Choose Vendors"])
 
 with tab1:
@@ -497,10 +501,6 @@ with tab2:
     )
     fig_vendor_pick.update_xaxes(tickangle=-30)
     st.plotly_chart(fig_vendor_pick, use_container_width=True)
-
-# Optional table
-if st.toggle("Show Vendor Summary", value=False, key="vendor_table"):
-    st.dataframe(vendor_sum)
 
 st.divider()
 

@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-# ------------------ App setup ------------------
+# ------------------ App setup --------------
 st.set_page_config(page_title="Financial Dashboard", page_icon=":bar_chart:", layout="wide")
 color_theme = px.colors.qualitative.Pastel
 from utils.bootstrap import ensure_bootstrap
@@ -149,6 +149,7 @@ balance_filtered = bf[[
     txn_col, "Type", "Employee", "Amount", "Expense category",
     "Time", "Date", "Month", "Year", "Debit Net Amount", "Credit Net Amount"
 ]].rename(columns={txn_col: "Transaction Id"})
+balance_filtered["Expense status"] = np.nan   # balance report doesn’t have this
 
 
 
@@ -174,17 +175,18 @@ ef["Amount"] = (
 
 # Expense category
 ef["Expense category"] = ef["Expense category"].astype(str).str.strip()
-
+ef["Expense status"]   = ef.get("Expense status")
 # Type = CARD for all
 ef["Type"] = "CARD"
 
-# --- final output ---
+# --- final output (include the two columns) ---
 expense_filtered = ef[[
     "Time", "Date", "Month", "Year",
     "Employee",
     "Transaction Id",
     "Amount",
     "Expense category",
+    "Expense status",           
     "Type"
 ]].copy()
 
@@ -196,8 +198,9 @@ final_dataframe = pd.concat([expense_filtered, balance_filtered], ignore_index=T
 # --- standardise columns coming from expense/balance merges ---
 df = final_dataframe.copy()
 
-# Ensure casing and types
-df["Type"] = df["Type"].astype(str).str.strip().str.upper()
+# Type normalized
+type_upper = df["Type"].astype(str).str.strip().str.upper()
+df["Type"] = type_upper
 # After df["User"] = ...
 df.loc[df["Type"] == "ADJUSTMENT", "User"] = "Adjustment"
 
@@ -209,6 +212,20 @@ df["Category"] = df["Expense category"].astype(str).str.strip()
 adj_mask = df["Type"].astype(str).str.upper().eq("ADJUSTMENT")
 df.loc[adj_mask, "User"] = "Adjustments"              # plural, as requested
 df.loc[adj_mask, "Category"] = "Air wallex Expense"   # exact label you asked for
+card_mask = type_upper.eq("CARD")
+# take category only from expense file for CARD rows
+df.loc[card_mask, "Category"] = (
+    df.loc[card_mask, "Expense category"]
+      .astype(str).str.strip()
+      .replace({"": pd.NA, "nan": pd.NA, "None": pd.NA})
+)
+
+# Incomplete rule (CARD only)
+incomplete_mask = (
+    card_mask
+    & df["Category"].isna()
+    & df.get("Expense status", "").astype(str).str.strip().str.lower().eq("incomplete"))
+df.loc[incomplete_mask, "Category"] = "Incomplete"
 
 
 # Time fields
@@ -505,6 +522,8 @@ if "All" in selected_users:
 
     mask = ~filtered_df['Type'].astype(str).str.strip().str.upper().isin(['DEPOSIT', 'CARD_REFUND'])
     spend_only = filtered_df.loc[mask].copy()
+  
+
 
     category_df = (
         spend_only.groupby('Category', as_index=False)['Debit Net Amount']
