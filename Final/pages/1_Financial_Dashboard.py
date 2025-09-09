@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
-# ------------------ App setup --------------
+# --------------- App setup Initial --------------
 st.set_page_config(page_title="Financial Dashboard", page_icon=":bar_chart:", layout="wide")
 color_theme = px.colors.qualitative.Pastel
 from utils.bootstrap import ensure_bootstrap
@@ -408,7 +408,7 @@ if "All" in selected_users:
             else:
                 pie_fig = px.pie(
                     pie_df, names='User', values='Total Amount', hole=0.4,
-                    title='Total Amount by User (excluding deposits/refunds)',
+                    title='Total Amount by User',
                     color_discrete_sequence=color_theme
                 )
                 pie_fig.update_traces(textposition='inside', textinfo='percent+label', marker_line_width=0)
