@@ -89,7 +89,6 @@ st.markdown("<h1 style='text-align: center;'>Subscription Dashboard</h1>", unsaf
 render_subscription_faq()
 
 # -------------------- Helpers --------------------
-@st.cache_data(show_spinner=False)
 def _load_csv(file) -> pd.DataFrame:
     """
     Load uploaded file reliably.
@@ -245,10 +244,20 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
     if "Source" in df.columns:
         df = df[df["Source"].astype(str).str.strip().str.lower() == "spend money"]
 
+    # In _prepare()
     def _parse_date(x):
-        if pd.isna(x): return pd.NaT
-        if isinstance(x, (pd.Timestamp, datetime)): return pd.to_datetime(x)
-        return pd.to_datetime(str(x), dayfirst=True, errors='coerce')
+        if pd.isna(x): 
+            return pd.NaT
+        s=str(x).strip()
+
+        # Handle common numeric slash dates explicitly
+        if re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", s):
+            # MDY: 08/11/2025 -> Aug 11, 2025
+            return pd.to_datetime(s, format="%m/%d/%Y", errors="coerce")
+
+        # Fallbacks (handles '02 Jan 2025', '2025-01-02', etc.)
+        return pd.to_datetime(s, errors="coerce")
+
     # keep only expenditure rows
     if "Source" in df.columns:
         df = df[df["Source"].astype(str).str.strip().str.lower() == "spend money"]
@@ -363,6 +372,10 @@ filtered = df[
     & df["Type"].isin(types)
     & df["Vendor"].isin(vendors)
 ].copy()
+#dbg_months = sorted(filtered["Month Name"].dropna().unique(),
+                    #key=lambda m: MONTH_ORDER.index(m))
+#st.caption("Months in filtered → " + ", ".join(dbg_months))
+#st.caption(f"Date range → {filtered['Date'].min()} → {filtered['Date'].max()}  |  Rows: {len(filtered)}")
 
 # -------------------- Title & KPIs --------------------
 st.title("Subscription Dashboard")
@@ -378,10 +391,19 @@ show_ot_table = st.toggle("Show Over-Time Data", value=False, key="ot_table")
 
 view_mode = st.segmented_control("View", options=["Overall", "Facet by Type"], default="Overall")
 
-# Aggregate by Month Name (across years); enforce month ordering
+#Aggregate by Month Name (across years); enforce month ordering
 by_month = filtered.groupby("Month Name", as_index=False)["Debit(AUD)"].sum()
 by_month["Month Name"] = pd.Categorical(by_month["Month Name"], categories=MONTH_ORDER, ordered=True)
 by_month = by_month.sort_values("Month Name")
+# Aggregate by Month Name (across years)
+#by_month = filtered.groupby("Month Name", as_index=False)["Debit(AUD)"].sum()
+
+# Build month order dynamically from what's actually present
+#present_months = [m for m in MONTH_ORDER if m in by_month["Month Name"].unique()]
+
+#by_month["Month Name"] = pd.Categorical(
+    #by_month["Month Name"], categories=present_months, ordered=True)
+#by_month = by_month.sort_values("Month Name")
 
 if view_mode == "Overall":
     fig_line = px.line(
@@ -391,7 +413,7 @@ if view_mode == "Overall":
         markers=True,
         title="Overall Subscription Spend (by Month)",
         labels={"Month Name": "Month", "Debit(AUD)": "Spend (AUD)"},
-        category_orders={"Month Name": MONTH_ORDER},
+        category_orders={"Month Name": MONTH_ORDER },#present_months},
     )
 else:
     by_month_type = filtered.groupby(["Month Name", "Type"], as_index=False)["Debit(AUD)"].sum()
