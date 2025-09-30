@@ -206,7 +206,7 @@ df.loc[df["Type"] == "ADJUSTMENT", "User"] = "Adjustment"
 
 # Standardise people/category column names to what the dashboard expects
 # (balance_filtered has Employee; expenses had Employee; dashboard uses 'User' + 'Category')
-df["User"] = df["Employee"].astype(str).str.strip().str.title()
+df["User"] = df["Employee"].astype(str).str.replace(r"\s+", " ", regex=True).str.replace(u"\xa0", " ", regex=False).str.strip().str.title()
 df["Category"] = df["Expense category"].astype(str).str.strip()
 # --- enforce rules for ADJUSTMENT (after User/Category are set) ---
 adj_mask = df["Type"].astype(str).str.upper().eq("ADJUSTMENT")
