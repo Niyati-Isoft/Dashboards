@@ -52,8 +52,19 @@ def render_faq_expander():
         ("Why might a BAR transaction be missing from the unified file?",
          "- Join is on **Transaction Id**. If an ID is blank, mismatched, or absent in the other file, it won’t match.\n"
          "- Check both source files or use *Missing Transaction Checker*."),
+        ("What is the 'Incomplete' category?",
+         "- If a **CARD** transaction has no category and the Expense Status = 'Incomplete',\n"
+         "  the dashboard assigns **Category = Incomplete**.\n"
+         "- This highlights expenses that need Finance follow-up."),
+        ("Why do I see 'Adjustments' as a User?",
+         "- **ADJUSTMENT** transactions are manual corrections in Airwallex.\n"
+         "- For clarity, the dashboard groups them under **User = Adjustments**\n"
+         "  and **Category = Air wallex Expense**."),
+        ("Why might a user name appear twice?",
+         "- Sometimes names differ slightly due to extra spaces or hidden characters.\n"
+         "- Example: *'Christine  Thomas'* (double space) vs *'Christine Thomas'.*\n"
+         "- We now clean most cases, but if you see duplicates, check the source file formatting."),
     ]
-
     with st.expander("❓ FAQ — click to open", expanded=False):
         # Quick dropdown for one answer
         questions = [q for q, _ in faqs]
