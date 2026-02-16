@@ -93,8 +93,24 @@ elif not exp_file or not bal_file:
     st.error("❌ Please upload both files to proceed.")
     st.stop()
 
-balance_file = pd.read_csv(bal_file, encoding="utf-8-sig")
-expense_file = pd.read_csv(exp_file, encoding="utf-8-sig")
+#safe CSV reading with fallback- check 
+def safe_read_csv(file):
+    try:
+        # Try normal fast parser
+        return pd.read_csv(file, encoding="utf-8-sig")
+    except Exception:
+        file.seek(0)
+        # Fallback: tolerant parser
+        return pd.read_csv(
+            file,
+            encoding="utf-8-sig",
+            sep=None,          # auto-detect delimiter
+            engine="python",   # more tolerant
+            on_bad_lines="warn"
+        )
+
+balance_file = safe_read_csv(bal_file)
+expense_file = safe_read_csv(exp_file)
 
 # -------- BALANCE (balance_file) USING FINANCIAL TRANSACTION TYPE --------
 def _pick(df, names):
